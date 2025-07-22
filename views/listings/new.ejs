@@ -1,0 +1,120 @@
+<% layout("./layouts/boilerplate.ejs") %>
+
+<div class="row mt-3">
+  <div class="col-8 offset-2">
+    <h3>Create a New Listing</h3>
+    <form method="POST" action="/listings" class="row g-3 needs-validation" novalidate enctype="multipart/form-data">
+      
+      <!-- Title -->
+      <div class="col-md-12">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="listing[title]" placeholder="Enter title" required>
+        <div class="invalid-feedback">Please enter a title.</div>
+      </div>
+
+      <!-- Description -->
+      <div class="col-md-12">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="listing[description]" placeholder="Enter description" required></textarea>
+        <div class="invalid-feedback">Please enter a description.</div>
+      </div>
+
+      <!-- Image -->
+      <div class="col-md-12">
+        <label for="image" class="form-label">Upload Listing Image</label>
+        <input type="file" class="form-control" id="image" name="listing[image]" required>
+      </div>
+
+      <!-- Price -->
+      <div class="col-md-4">
+        <label for="price" class="form-label">Price</label>
+        <input type="text" class="form-control" id="price" name="listing[price]" placeholder="Enter price" required>
+        <div class="invalid-feedback">Please enter a price.</div>
+      </div>
+
+       <!-- Country (autofilled from city input) -->
+      <div class="col-md-6">
+        <label for="country" class="form-label">Country</label>
+        <input type="text" class="form-control" id="country" name="listing[country]" placeholder="Enter country">
+      </div>
+
+      <!-- Location (City - Manual Input) -->
+      <div class="col-md-12">
+        <label for="location" class="form-label">Location (City)</label>
+        <input type="text" class="form-control" id="location" name="listing[location]" placeholder="Enter city" required>
+        <div class="invalid-feedback">Please enter a location.</div>
+      </div>
+
+      <!-- Submit -->
+      <div class="col-12">
+        <button class="btn btn-dark add-btn mt-3" type="submit">Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ✅ Form validation -->
+<script>
+(() => {
+  'use strict'
+  const forms = document.querySelectorAll('.needs-validation')
+  Array.from(forms).forEach(form => {
+    form.addEventListener('submit', event => {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      form.classList.add('was-validated')
+    }, false)
+  })
+})()
+</script>
+
+<!-- ✅ Leaflet CDN -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  integrity="sha256-sA+z0pZD+IW2dD2Pz0pXBo0yp3Xv6f7UV1drPvFf0PE="
+  crossorigin=""
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+  integrity="sha256-Dw7m3Ipn2L1ZQef35P98DscP2yfjDPF+0LMScEvuN0o="
+  crossorigin=""
+></script>
+
+<!-- ✅ Map Logic -->
+<script>
+  const cityInput = document.getElementById("location");
+  const countryInput = document.getElementById("country");
+
+  cityInput.addEventListener("blur", async () => {
+    const city = cityInput.value.trim();
+    if (!city) return;
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`, {
+        headers: {
+          "User-Agent": "SerevaApp/1.0 (youremail@example.com)" // recommended by Nominatim
+        }
+      });
+
+      const data = await res.json();
+
+      if (data.length > 0) {
+        const address = data[0].display_name.split(",");
+        const country = address[address.length - 1].trim();
+
+        countryInput.value = country || "Unknown Country";
+      } else {
+        countryInput.value = "Unknown Country";
+      }
+    } catch (err) {
+      console.error("🌍 Country autofill failed:", err);
+      countryInput.value = "Unknown Country";
+    }
+  });
+</script>
+
+
+
